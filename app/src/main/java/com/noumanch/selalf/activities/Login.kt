@@ -62,6 +62,14 @@ import com.twitter.sdk.android.core.identity.TwitterLoginButton
 import com.twitter.sdk.android.core.models.User
 import java.lang.NullPointerException
 
+import com.linkedin.platform.APIHelper
+import com.linkedin.platform.LISessionManager
+import com.linkedin.platform.errors.LIApiError
+import com.linkedin.platform.errors.LIAuthError
+import com.linkedin.platform.listeners.ApiListener
+import com.linkedin.platform.listeners.ApiResponse
+import com.linkedin.platform.listeners.AuthListener
+import com.linkedin.platform.utils.Scope
 
 class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
 
@@ -82,16 +90,16 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
     private val image: String? = null
 
 
-  /*  internal val oAuthService = LinkedInOAuthServiceFactory
-            .getInstance().createLinkedInOAuthService(
-                    Config.LINKEDIN_CONSUMER_KEY, Config.LINKEDIN_CONSUMER_SECRET)
-    internal val factory = LinkedInApiClientFactory
-            .newInstance(Config.LINKEDIN_CONSUMER_KEY,
-                    Config.LINKEDIN_CONSUMER_SECRET)
-    internal var liToken: LinkedInRequestToken? = null
-    internal var client: LinkedInApiClient? = null
-    internal var accessToken: LinkedInAccessToken? = null
-*/
+    /*  internal val oAuthService = LinkedInOAuthServiceFactory
+              .getInstance().createLinkedInOAuthService(
+                      Config.LINKEDIN_CONSUMER_KEY, Config.LINKEDIN_CONSUMER_SECRET)
+      internal val factory = LinkedInApiClientFactory
+              .newInstance(Config.LINKEDIN_CONSUMER_KEY,
+                      Config.LINKEDIN_CONSUMER_SECRET)
+      internal var liToken: LinkedInRequestToken? = null
+      internal var client: LinkedInApiClient? = null
+      internal var accessToken: LinkedInAccessToken? = null
+  */
     var password: EditText? = null
     var email: EditText? = null
 
@@ -110,7 +118,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                     baseContext.resources.displayMetrics)
 
         }
-        FacebookSdk.sdkInitialize(Login@this);
+        FacebookSdk.sdkInitialize(Login@ this);
         Twitter.initialize(this)
         val config = TwitterConfig.Builder(this)
                 .logger(DefaultLogger(Log.DEBUG))
@@ -129,7 +137,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
         loginButton!!.setReadPermissions(Arrays.asList(EMAIL))
 
         tloginButton = findViewById<View>(R.id.logi_button) as TwitterLoginButton
-    // If you are using in a fragment, call loginButton.setFragment(this);
+        // If you are using in a fragment, call loginButton.setFragment(this);
         tloginButton!!.callback = object : Callback<TwitterSession>() {
             override fun success(result: Result<TwitterSession>) {
                 // Do something with result, which provides a TwitterSession for making API calls
@@ -163,9 +171,9 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                 exception.printStackTrace()
             }
         }
-    // Callback registration
+        // Callback registration
         loginButton!!.registerCallback(callbackManager!!,
-                object :FacebookCallback<LoginResult> {
+                object : FacebookCallback<LoginResult> {
                     override fun onError(error: FacebookException?) {
                         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
                     }
@@ -176,8 +184,8 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
 
                     override fun onSuccess(result: LoginResult?) {
                         Log.i("check", "JSON" + result.toString())
-            }
-        })
+                    }
+                })
 
 
 
@@ -416,6 +424,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
         } else {
             tloginButton!!.onActivityResult(requestCode, resultCode, data)
             callbackManager!!.onActivityResult(requestCode, resultCode, data)
+            LISessionManager.getInstance(this@Login).onActivityResult(this@Login, requestCode, resultCode, data)
         }
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -455,23 +464,86 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
     }
 
 
-
     fun loginButtonLinken(view: View) {
         //linkedInLogin();
+//        Toast.makeText(this@Login, "You clicked Linked", Toast.LENGTH_LONG).show()
+        handleLogin();
     }
 
+    private fun handleLogin() {
+        LISessionManager.getInstance(applicationContext).init(this, buildScope(), object : AuthListener {
+            override fun onAuthSuccess() {
+                // Authentication was successful.  You can now do
+                // other calls with the SDK.
+
+                fetchPersonalInfo()
+            }
+
+            override fun onAuthError(error: LIAuthError) {
+                // Handle authentication errors
+                Log.e("SAFI", error.toString())
+            }
+        }, true)
+    }
+
+    private fun fetchPersonalInfo() {
+        val url = "https://api.linkedin.com/v1/people/~:(id,first-name,last-name,public-profile-url,picture-url,email-address,picture-urls::(original))"
+        Log.i("check","Context:"+applicationContext)
+        val apiHelper = APIHelper.getInstance(applicationContext)
+        apiHelper.getRequest(this, url, object : ApiListener {
+            override fun onApiSuccess(apiResponse: ApiResponse) {
+                // Success!
+                Log.i("check", "onApiSuccess$apiResponse")
+                try {
+                    val jsonObject = apiResponse.responseDataAsJson
+                    val firstName = jsonObject!!.getString("firstName")
+                    val lastName = jsonObject.getString("lastName")
+                    val pictureUrl = jsonObject.getString("pictureUrl")
+                    val emailAddress = jsonObject.getString("emailAddress")
+                    StaticVariables.setCurrentUserId(this@Login, "420", lastName, firstName, "", emailAddress)
+                    val i = Intent(this@Login, Dashboard::class.java)
+                    i.putExtra("id", "420")
+                    startActivity(i)
+                    Toast.makeText(applicationContext, "Your are signin as: $firstName", Toast.LENGTH_LONG).show()
+                    /*
+                    Picasso.with(getApplicationContext()).load(pictureUrl).into(imgProfile);
+*/
+
+                    /*  val sb = StringBuilder()
+                      sb.append("First Name: $firstName")
+                      sb.append("\n\n")
+                      sb.append("Last Name: $lastName")
+                      sb.append("\n\n")
+                      sb.append("Email: $emailAddress")*/
+
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
+
+            }
+
+            override fun onApiError(liApiError: LIApiError) {
+                // Error making GET request!
+                Log.e("SAFI", liApiError.message)
+            }
+        })
+    }
+
+    // Build the list of member permissions our LinkedIn session requires
+    private fun buildScope(): Scope {
+        return Scope.build(Scope.R_BASICPROFILE, Scope.W_SHARE, Scope.R_EMAILADDRESS)
+    }
 
     fun connectTwitter() {
 
     }
 
     fun twitterLogin(view: View) {
-    try{
+        try {
             tloginButton!!.performClick()
-        }
-    catch (ex:Exception ){
+        } catch (ex: Exception) {
 
-    }
+        }
     }
 
 
