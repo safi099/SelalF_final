@@ -1,5 +1,6 @@
 package com.noumanch.selalf.fragment;
 
+ import android.app.AlertDialog;
  import android.content.Context;
  import android.content.Intent;
  import android.os.Bundle;
@@ -133,8 +134,13 @@ public class CartFragment extends Fragment {
                 holder.deleteItem.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
-                        new MaterialDialog.Builder(holder.delieryDate.getContext())
+                        Database database=new Database(holder.deleteItem.getContext());
+                        database.deleteProduct(mValues.get(position).getId());
+                        database.close();
+                        Toast.makeText(context, "Product removed ", Toast.LENGTH_SHORT).show();
+                        mValues.remove(position);
+                        notifyDataSetChanged();
+                  /*      new MaterialDialog.Builder(holder.delieryDate.getContext())
                                 .title(R.string.title)
                                 .content(R.string.content)
                                 .positiveText(R.string.agree)
@@ -158,7 +164,7 @@ public class CartFragment extends Fragment {
                                         dialog.dismiss();
                                     }
                                 })
-                                .show();
+                                .show();*/
                     }
                 });
                 String imagePath="";

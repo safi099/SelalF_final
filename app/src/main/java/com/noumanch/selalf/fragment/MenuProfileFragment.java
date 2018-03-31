@@ -165,7 +165,7 @@ public class MenuProfileFragment extends Fragment {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-
+                        StaticVariables.setIndicatorOfLogin(false);
                         StaticVariables.deleteCache(getActivity());
                         Toast.makeText(getActivity(), "Sign out sucessfully", Toast.LENGTH_SHORT).show();
                         getActivity().finish();

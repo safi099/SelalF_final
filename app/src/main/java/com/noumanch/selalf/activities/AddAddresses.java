@@ -169,7 +169,7 @@ public class AddAddresses extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressDialog.setVisibility(View.GONE);
-                        Toast.makeText(AddAddresses.this,"Internet is Not working correctly",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AddAddresses.this,"Internet is Not working correctly"+error.toString(),Toast.LENGTH_SHORT).show();
 
                     }
                 }){

@@ -34,7 +34,7 @@ public class StaticVariables {
 
     static String currentUserId;
 
-    static boolean INDICATOR_OF_LOGIN;
+    static boolean INDICATOR_OF_LOGIN=false;
     public static String KEY_FOR_USER_ID ="user_id" ;
     public static String KEY_FOR_USER_TOKEN = "user_token";
     public static String KEY_FOR_LOGIN_INDICATOR = "indicator_of_login";
@@ -53,6 +53,7 @@ public class StaticVariables {
     private static String KEY_FOR_email     = "email";
     private static String KEY_FOR_phone     = "phone";
 
+    static SharedPreferences preferences;
 
     public static void setCurrentUserId(Context context, String id, String lastname, String firstname, String phone, String email) {
 
@@ -269,19 +270,27 @@ public class StaticVariables {
 
         SharedPreferences sharedPreferences = context.getSharedPreferences("SavedData",Context.MODE_PRIVATE);
 
-        sharedPreferences.edit().putString("first_login_data","");
+        sharedPreferences.edit().putString("first_login_data","").commit();
 
 
 
     }
-    public static boolean isFirstLogin(Context context){
+    public static void setFirstLogin(Context context,boolean isLogin){
 
-        SharedPreferences sharedPreferences = context.getSharedPreferences("SavedData",Context.MODE_PRIVATE);
-
-        if (sharedPreferences.contains("first_login_data")){
+        preferences = context.getSharedPreferences("SavedData",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean("isLogin", isLogin);
+        editor.commit();
+       /* if (sharedPreferences.contains("first_login_data")){
 
             return false;
-        }return true;
+        }return true;*/
+
+    }
+
+    public static boolean getFirstLogin(Context context){
+        preferences = context.getSharedPreferences("SavedData",Context.MODE_PRIVATE);
+        return preferences.getBoolean("isLogin",false);
     }
 
     public static  void setLanguage(Context context,String lang){

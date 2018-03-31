@@ -35,11 +35,10 @@ public class SplashScreen extends AppCompatActivity {
             public void run() {
 
 
-                if (StaticVariables.isFirstLogin(SplashScreen.this)){
-                    StaticVariables.setFirstLoginData(SplashScreen.this);
-
-                    //startActivity(new Intent(SplashScreen.this, First.class));
-                    startActivity(new Intent(SplashScreen.this, Login.class));
+                if (!StaticVariables.getFirstLogin(SplashScreen.this)){
+                    StaticVariables.setFirstLogin(SplashScreen.this,true);
+                    startActivity(new Intent(SplashScreen.this, First.class));
+                    //startActivity(new Intent(SplashScreen.this, Login.class));
                     finish();
                 }else {
                     StaticVariables.getLang(SplashScreen.this);

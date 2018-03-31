@@ -59,7 +59,7 @@ public class First extends AppCompatActivity {
             public void onClick(View view) {
                 DroppyMenuPopup.Builder droppyBuilder = new DroppyMenuPopup.Builder(First.this, selctCounty);
                 // Add Item with icon
-                DroppyMenuItem item  = new DroppyMenuItem("Turkey", R.drawable.turkey);
+                DroppyMenuItem item = new DroppyMenuItem("Turkey", R.drawable.turkey);
                 Drawable d = new BitmapDrawable(getResources(), resize(R.drawable.turkey));
 
                 item.setIcon(d);
@@ -73,12 +73,12 @@ public class First extends AppCompatActivity {
                     @Override
                     public void call(View v, int id) {
                         Log.d("Clicked on ", String.valueOf(id));
-                        if (id == 0  ){
+                        if (id == 0) {
                             //turkey
                             selctCounty.setImageResource(R.drawable.turkey);
-                        }else if (id == 1){
+                        } else if (id == 1) {
                             selctCounty.setImageResource(R.drawable.uae);
-                        }else if (id == 2){
+                        } else if (id == 2) {
                             selctCounty.setImageResource(R.drawable.saudi);
                         }
                     }
@@ -116,28 +116,30 @@ public class First extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                StaticVariables.language =false;
-                StaticVariables.setLanguage(First.this,"ara");
-                if (StaticVariables.getUser(First.this)==null) {
+                StaticVariables.language = false;
+                StaticVariables.setLanguage(First.this, "ara");
+                /*if (StaticVariables.getUser(First.this)==null) {
                     startActivity(new Intent(First.this, Login.class));
                     //finish();
-                }else {
-                    startActivity(new Intent(First.this,Dashboard.class));
-                }
+                }else {*/
+                startActivity(new Intent(First.this, Dashboard.class));
+                finish();
+                /*}*/
             }
         });
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                StaticVariables.language =true;
-                StaticVariables.setLanguage(First.this,"eng");
-                if (StaticVariables.getUser(First.this)==null) {
+                StaticVariables.language = true;
+                StaticVariables.setLanguage(First.this, "eng");
+                /*if (StaticVariables.getUser(First.this)==null) {
                     startActivity(new Intent(First.this, Login.class));
                     //finish();
-                }else {
-                    startActivity(new Intent(First.this,Dashboard.class));
-                }
+                }else {*/
+                startActivity(new Intent(First.this, Dashboard.class));
+                finish();
+                    /*}*/
 
             }
         });

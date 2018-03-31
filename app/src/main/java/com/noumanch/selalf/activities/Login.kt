@@ -70,12 +70,15 @@ import com.linkedin.platform.listeners.ApiListener
 import com.linkedin.platform.listeners.ApiResponse
 import com.linkedin.platform.listeners.AuthListener
 import com.linkedin.platform.utils.Scope
+import fr.arnaudguyon.xmltojsonlib.XmlToJson
+import java.io.UnsupportedEncodingException
 
 class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
 
     private var callbackManager: CallbackManager? = null
     private var loginButton: LoginButton? = null
     private var l_Button: Button? = null
+
     override fun onConnectionFailed(p0: ConnectionResult) {
         Log.i("check", "Connection Failed" + p0.errorCode + "\t " + p0.toString())
     }
@@ -87,19 +90,11 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
     private var forgot_password: TextView? = null
 
     private var tloginButton: TwitterLoginButton? = null
-    private val image: String? = null
+    private var firstname: String? = null
+    private var lastname: String? = null
+    private var tpassword: String? = null
+    private var temail: String? = null
 
-
-    /*  internal val oAuthService = LinkedInOAuthServiceFactory
-              .getInstance().createLinkedInOAuthService(
-                      Config.LINKEDIN_CONSUMER_KEY, Config.LINKEDIN_CONSUMER_SECRET)
-      internal val factory = LinkedInApiClientFactory
-              .newInstance(Config.LINKEDIN_CONSUMER_KEY,
-                      Config.LINKEDIN_CONSUMER_SECRET)
-      internal var liToken: LinkedInRequestToken? = null
-      internal var client: LinkedInApiClient? = null
-      internal var accessToken: LinkedInAccessToken? = null
-  */
     var password: EditText? = null
     var email: EditText? = null
 
@@ -118,6 +113,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                     baseContext.resources.displayMetrics)
 
         }
+        //SignUp("")
         FacebookSdk.sdkInitialize(Login@ this);
         Twitter.initialize(this)
         val config = TwitterConfig.Builder(this)
@@ -148,10 +144,13 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                 call.enqueue(object : Callback<User>() {
                     override fun success(result: Result<User>) {
                         //here we go User details
-                        StaticVariables.setCurrentUserId(this@Login, "0100", result.data.screenName, result.data.name, "", result.data.email)
-                        val i = Intent(this@Login, Dashboard::class.java)
-                        i.putExtra("id", "0100")
-                        startActivity(i)
+                        firstname=result.data.screenName
+                        lastname=result.data.name
+                        tpassword="twitter"
+                        temail=result.data.email
+                        SignUp(firstname!!,lastname!!, tpassword!!,temail!!)
+                        //StaticVariables.setCurrentUserId(this@Login, result.data.id.toString(), result.data.screenName, result.data.name, "", result.data.email)
+
                         //Log.e("result", "result user " + result.data.idStr)
                         /*val imageUrl = result.data.profileImageUrl
                         val email = result.data.email
@@ -200,6 +199,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                             // Insert your code here
                             try {
                                 StaticVariables.setCurrentUserId(this@Login, `object`.get("id").toString(), `object`.get("last_name").toString(), `object`.get("first_name").toString(), "", `object`.get("email").toString())
+                                StaticVariables.setIndicatorOfLogin(true)
                                 val i = Intent(this@Login, Dashboard::class.java)
                                 i.putExtra("id", `object`.get("id").toString())
                                 startActivity(i)
@@ -245,6 +245,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
             //startActivity(new Intent(Login.this,Dashboard.class));
         }
         continueAsGuestTV!!.setOnClickListener {
+            StaticVariables.setIndicatorOfLogin(false)
             startActivity(Intent(this@Login, Dashboard::class.java))
             //finish();
             //startActivity(new Intent(Login.this,Dashboard.class));
@@ -359,6 +360,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                             if (spinKitView != null)
                                 spinKitView!!.visibility = View.GONE
                             Toast.makeText(this@Login, "Login Sucessfully", Toast.LENGTH_SHORT).show()
+                            StaticVariables.setIndicatorOfLogin(true)
                             StaticVariables.setCurrentUserId(this@Login, id, lastname, firstname, "", email)
                             val i = Intent(this@Login, Dashboard::class.java)
                             i.putExtra("id", id)
@@ -436,6 +438,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
             Toast.makeText(applicationContext, "You are successfully Signed In", Toast.LENGTH_LONG).show()
             try {
                 Log.i("check", "NAMe=" + account!!.id + "\n Email:" + account.email)
+                StaticVariables.setIndicatorOfLogin(true)
                 StaticVariables.setCurrentUserId(this@Login, account.id, account.familyName, account.displayName, "", account.email)
                 val i = Intent(this@Login, Dashboard::class.java)
                 i.putExtra("id", account.id)
@@ -501,6 +504,7 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
                     val pictureUrl = jsonObject.getString("pictureUrl")
                     val emailAddress = jsonObject.getString("emailAddress")
                     StaticVariables.setCurrentUserId(this@Login, "420", lastName, firstName, "", emailAddress)
+                    StaticVariables.setIndicatorOfLogin(true)
                     val i = Intent(this@Login, Dashboard::class.java)
                     i.putExtra("id", "420")
                     startActivity(i)
@@ -570,4 +574,94 @@ class Login : AppCompatActivity(), GoogleApiClient.OnConnectionFailedListener {
         }
     }
 
+    fun SignUp(first:String,last:String,password:String,email:String) {
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            val drawable = ProgressBar(this).indeterminateDrawable.mutate()
+            drawable.setColorFilter(ContextCompat.getColor(this, R.color.colorAccent),
+                    PorterDuff.Mode.SRC_IN)
+        }
+
+        //spinKitView!!.visibility = View.VISIBLE
+
+        val url = resources.getString(R.string.signup_url)
+
+        val stringRequest = object : StringRequest(Request.Method.POST, url,
+                Response.Listener { response ->
+                    Log.i("check", "Response" + response)
+
+                    try {
+                        val xmlToJson = XmlToJson.Builder(response).build()
+                        // convert to a JSONObject
+                        val jsonObject = xmlToJson.toJson()
+                        try {
+                            val `object` = JSONObject(jsonObject.toString())
+                            //Log.i("check","json= "+object);
+                            val object1 = `object`.get("prestashop") as JSONObject
+                            val object2 = object1.get("customer") as JSONObject
+
+                            Log.i("check", "ID= " + object2.getString("id").toString())
+                            StaticVariables.setCurrentUserId(this@Login,object2.getString("id").toString(),
+                                    last,first,"",email);
+                            StaticVariables.setIndicatorOfLogin(true)
+
+                            val i = Intent(this@Login, Dashboard::class.java)
+                            i.putExtra("id",object2.getString("id").toString() )
+                            startActivity(i)
+                        } catch (e: JSONException) {
+                            Log.i("check", e.toString())
+                            e.printStackTrace()
+                        }
+
+                        Log.i("check", "onResponse: " + jsonObject.toString())
+
+                        Toast.makeText(this@Login, "Account Created Sucessfully", Toast.LENGTH_SHORT).show()
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+              /*          if (spinKitView != null)
+                            spinKitView!!.visibility = View.GONE*/
+                        Toast.makeText(this@Login, "Fail to Create Account", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                Response.ErrorListener {
+                 /*   spinKitView!!.visibility = View.GONE*/
+                    it.printStackTrace();
+                    Toast.makeText(this@Login, "Internet is Not working correctly"+it, Toast.LENGTH_SHORT).show()
+                }) {
+
+            override fun getBodyContentType(): String {
+                return "application/xml; charset=" + paramsEncoding
+            }
+
+            @Throws(AuthFailureError::class)
+            override fun getBody(): ByteArray? {
+                val postData =
+                        "<prestashop xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n" +
+                                "<customer>\n" +
+                                "<passwd>" + password +
+                                "</passwd>\n" +
+                                "<lastname>" + last +
+                                "</lastname>\n" +
+                                "<firstname>" + first +
+                                "</firstname>\n" +
+                                "<email>" + email +
+                                "</email><id_default_group>3</id_default_group>\n" +
+                                "</customer>\n" +
+                                "</prestashop>"
+                Log.i("check", "getBody: " + postData)
+                try {
+                    return postData?.toByteArray(charset(paramsEncoding))
+                } catch (uee: UnsupportedEncodingException) {
+                    Log.i("check", "UnSupported Exception")
+                    return null
+                }
+
+            }
+        }
+        val requestQueue = Volley.newRequestQueue(this)
+        requestQueue.add(stringRequest)
+        return
+
+    }
 }

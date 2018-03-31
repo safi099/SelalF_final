@@ -69,7 +69,6 @@ class Signup : AppCompatActivity()/* ,GoogleListener*/ {
             config.locale = locale
             baseContext.resources.updateConfiguration(config,
                     baseContext.resources.displayMetrics)
-
         }
         setContentView(R.layout.activity_signup)
 
@@ -147,19 +146,12 @@ class Signup : AppCompatActivity()/* ,GoogleListener*/ {
      * send the attendence
      */
     fun doTask(json: String) {
-        /*
-        final ProgressDialog progressDialog = new ProgressDialog(Signup.this);
-        progressDialog.setMessage("Creating New User...");
-        progressDialog.setIndeterminate(true);
-*/
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             val drawable = ProgressBar(this).indeterminateDrawable.mutate()
             drawable.setColorFilter(ContextCompat.getColor(this, R.color.colorAccent),
                     PorterDuff.Mode.SRC_IN)
-            //progressDialog.setIndeterminateDrawable(drawable);
         }
-        //progressDialog.setCancelable(false);
 
         spinKitView!!.visibility = View.VISIBLE
 
@@ -170,15 +162,10 @@ class Signup : AppCompatActivity()/* ,GoogleListener*/ {
                     Log.i("RESPONSE", "" + response)
 
                     try {
-
-                        //JSONObject jsonObject = XML.toJSONObject(response);
-
-                        //JSONObject array = new JSONObject(jsonObject);
-                        //boolean status = array.getBoolean("status");
-                        //if (status) {
                         val xmlToJson = XmlToJson.Builder(response).build()
                         // convert to a JSONObject
                         val jsonObject = xmlToJson.toJson()
+
                         val prestashop = jsonObject!!.getJSONObject("prestashop")
                         val customer = prestashop.getJSONObject("customer")
                         val email = customer.getString("email")
@@ -207,12 +194,7 @@ class Signup : AppCompatActivity()/* ,GoogleListener*/ {
 
                     Toast.makeText(this@Signup, "Internet is Not working correctly", Toast.LENGTH_SHORT).show()
                 }) {
-            /*@Override
-            public String getBodyContentType() {
 
-                //return "application/json; charset=utf-8";
-
-            }*/
             override fun getBodyContentType(): String {
                 return "application/xml; charset=" + paramsEncoding
             }
@@ -242,16 +224,6 @@ class Signup : AppCompatActivity()/* ,GoogleListener*/ {
 
             }
         }
-        /*@Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                super.getParams();
-                Map<String,String > value = new HashMap<>();
-                //value.put("email",email.getText().toString());
-                //value.put("password",password.getText().toString());
-                return value;
-            }*/
-
-
         val requestQueue = Volley.newRequestQueue(this)
         requestQueue.add(stringRequest)
         return
